@@ -1,0 +1,132 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Σύνδεση AB Vassilopoulos",
+        "description": "Χρησιμοποίησε **έναν** browser (Edge ή Firefox, όχι και τους δύο). Τα cookies είναι διαφορετικά σε κάθε browser γιατί είναι διαφορετική σύνδεση — και τα δύο δουλεύουν, αρκεί να είσαι συνδεδεμένος στα ελληνικά (ab.gr).\n\n1. Άνοιξε [{login_url}]({login_url}) και συνδέσου.\n2. Ενεργοποίησε **Διατήρηση της σύνδεσής μου / Remember me** στη φόρμα σύνδεσης.\n3. Πάτα F12 → καρτέλα **Δίκτυο / Network**.\n4. Πάτα F5.\n5. Φίλτρο: `api/v1` → κλικ στην πρώτη γραμμή.\n6. **Κεφαλίδες / Headers** → **Request Headers** → γραμμή **Cookie** (όχι Set-Cookie).\n7. Δεξί κλικ → Copy value / Αντιγραφή τιμής.\n8. Επικόλλησε στο μεγάλο πεδίο κάτω.",
+        "data": {
+          "cookie_header": "Γραμμή Cookie"
+        },
+        "data_description": {
+          "cookie_header": "Μακρύ κείμενο τύπου name=τιμή; name2=τιμή2; …  Όχι URL και όχι κωδικός."
+        }
+      },
+      "reauth_confirm": {
+        "title": "Επανασύνδεση AB Vassilopoulos",
+        "description": "Χρησιμοποίησε **έναν** browser (Edge ή Firefox, όχι και τους δύο). Τα cookies είναι διαφορετικά σε κάθε browser γιατί είναι διαφορετική σύνδεση — και τα δύο δουλεύουν, αρκεί να είσαι συνδεδεμένος στα ελληνικά (ab.gr).\n\n1. Άνοιξε [{login_url}]({login_url}) και συνδέσου.\n2. Ενεργοποίησε **Διατήρηση της σύνδεσής μου / Remember me** στη φόρμα σύνδεσης.\n3. Πάτα F12 → καρτέλα **Δίκτυο / Network**.\n4. Πάτα F5.\n5. Φίλτρο: `api/v1` → κλικ στην πρώτη γραμμή.\n6. **Κεφαλίδες / Headers** → **Request Headers** → γραμμή **Cookie** (όχι Set-Cookie).\n7. Δεξί κλικ → Copy value / Αντιγραφή τιμής.\n8. Επικόλλησε στο μεγάλο πεδίο κάτω.",
+        "data": {
+          "cookie_header": "Γραμμή Cookie"
+        },
+        "data_description": {
+          "cookie_header": "Μακρύ κείμενο τύπου name=τιμή; name2=τιμή2; …  Όχι URL και όχι κωδικός."
+        }
+      }
+    },
+    "error": {
+      "invalid_cookies": "{error_detail}",
+      "cannot_connect": "Αποτυχία σύνδεσης με το API της ΑΒ: {error_detail}"
+    },
+    "abort": {
+      "already_configured": "Αυτός ο λογαριασμός είναι ήδη συνδεδεμένος.",
+      "cannot_connect": "Δεν ήταν δυνατή η σύνδεση με το API.",
+      "reauth_successful": "Η σύνδεση αποκαταστάθηκε."
+    }
+  },
+  "services": {
+    "search_products": {
+      "name": "Αναζήτηση προϊόντων ΑΒ",
+      "description": "Επιστρέφει προτάσεις προϊόντων με διαθέσιμη τιμή και προσφορές.",
+      "fields": {
+        "query": {
+          "name": "Αναζήτηση",
+          "description": "Όνομα προϊόντος ή μέρος του."
+        },
+        "page": {
+          "name": "Σελίδα αποτελεσμάτων",
+          "description": "Σελίδα αποτελεσμάτων, με αρίθμηση από το 0."
+        }
+      }
+    },
+    "add_products": {
+      "name": "Προσθήκη προϊόντων στο καλάθι",
+      "description": "Προσθέτει τα επιλεγμένα προϊόντα στο καλάθι και στη λίστα αγορών ΑΒ.",
+      "fields": {
+        "products": {
+          "name": "Προϊόντα",
+          "description": "Προϊόντα με κωδικό, όνομα και προαιρετική ποσότητα."
+        }
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "estimated_cost": {
+        "name": "AB estimated cost",
+        "state_attributes": {
+          "unpriced_products": {
+            "name": "Προϊόντα χωρίς τιμή"
+          },
+          "products_with_promotions": {
+            "name": "Προϊόντα με προσφορά"
+          }
+        }
+      },
+      "points": {
+        "name": "AB Plus πόντοι"
+      },
+      "points_value_eur": {
+        "name": "AB Plus αξία πόντων"
+      },
+      "points_expiring": {
+        "name": "AB Plus πόντοι προς λήξη",
+        "state_attributes": {
+          "next_expiration_month": {
+            "name": "Επόμενος μήνας λήξης"
+          },
+          "points_expiration_schedule": {
+            "name": "Πρόγραμμα λήξης πόντων"
+          }
+        }
+      },
+      "points_recent_activity": {
+        "name": "AB Plus τελευταία κίνηση",
+        "state": {
+          "no_activity": "Καμία πρόσφατη κίνηση"
+        },
+        "state_attributes": {
+          "recent_activity": {
+            "name": "Πρόσφατη κίνηση πόντων"
+          }
+        }
+      },
+      "wallet_discount": {
+        "name": "AB Plus έκπτωση πορτοφολιού",
+        "state_attributes": {
+          "wallet_expiring_amount_eur": {
+            "name": "Ποσό πορτοφολιού που λήγει"
+          },
+          "wallet_expiration_date": {
+            "name": "Ημερομηνία λήξης πορτοφολιού"
+          },
+          "wallet_recent_activity": {
+            "name": "Πρόσφατη κίνηση πορτοφολιού"
+          }
+        }
+      },
+      "loyalty_profile": {
+        "name": "AB Plus προφίλ",
+        "state": {
+          "connected": "Συνδεδεμένο"
+        }
+      },
+      "offers_in_completed": {
+        "name": "AB προϊόντα προσφοράς στα ολοκληρωμένα"
+      }
+    },
+    "todo": {
+      "shopping_list": {
+        "name": "Λίστα αγορών AB"
+      }
+    }
+  }
+}

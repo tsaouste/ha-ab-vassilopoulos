@@ -1,0 +1,106 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Connect AB Vassilopoulos",
+        "description": "Use **one** browser (Edge or Firefox, not both). Cookie values differ per browser because each has its own login session — either works if you are signed in on the Greek site (ab.gr).\n\n1. Open [{login_url}]({login_url}) and sign in.\n2. Enable **Keep me signed in / Remember me** on the login form.\n3. Press F12 → **Network**.\n4. Press F5.\n5. Filter `api/v1` → click the first row.\n6. **Headers** → **Request Headers** → **Cookie** (not Set-Cookie).\n7. Right-click → Copy value.\n8. Paste into the box below.",
+        "data": {
+          "cookie_header": "Cookie line"
+        },
+        "data_description": {
+          "cookie_header": "A long line like name=value; name2=value2; …  Not a URL and not your password."
+        }
+      },
+      "reauth_confirm": {
+        "title": "Reconnect AB Vassilopoulos",
+        "description": "Use **one** browser (Edge or Firefox, not both). Cookie values differ per browser because each has its own login session — either works if you are signed in on the Greek site (ab.gr).\n\n1. Open [{login_url}]({login_url}) and sign in.\n2. Enable **Keep me signed in / Remember me** on the login form.\n3. Press F12 → **Network**.\n4. Press F5.\n5. Filter `api/v1` → click the first row.\n6. **Headers** → **Request Headers** → **Cookie** (not Set-Cookie).\n7. Right-click → Copy value.\n8. Paste into the box below.",
+        "data": {
+          "cookie_header": "Cookie line"
+        },
+        "data_description": {
+          "cookie_header": "A long line like name=value; name2=value2; …  Not a URL and not your password."
+        }
+      }
+    },
+    "error": {
+      "invalid_cookies": "{error_detail}",
+      "cannot_connect": "Could not connect to the AB API: {error_detail}"
+    },
+    "abort": {
+      "already_configured": "This account is already configured.",
+      "cannot_connect": "Could not connect to the AB API.",
+      "reauth_successful": "Connection restored."
+    }
+  },
+  "entity": {
+    "sensor": {
+      "estimated_cost": {
+        "name": "AB estimated cost",
+        "state_attributes": {
+          "unpriced_products": {
+            "name": "Products without a price"
+          },
+          "products_with_promotions": {
+            "name": "Products with promotions"
+          }
+        }
+      },
+      "points": {
+        "name": "AB Plus points"
+      },
+      "points_value_eur": {
+        "name": "AB Plus points value"
+      },
+      "points_expiring": {
+        "name": "AB Plus expiring points",
+        "state_attributes": {
+          "next_expiration_month": {
+            "name": "Next expiration month"
+          },
+          "points_expiration_schedule": {
+            "name": "Points expiration schedule"
+          }
+        }
+      },
+      "points_recent_activity": {
+        "name": "AB Plus latest activity",
+        "state": {
+          "no_activity": "No recent activity"
+        },
+        "state_attributes": {
+          "recent_activity": {
+            "name": "Recent points activity"
+          }
+        }
+      },
+      "wallet_discount": {
+        "name": "AB Plus wallet discount",
+        "state_attributes": {
+          "wallet_expiring_amount_eur": {
+            "name": "Wallet amount expiring"
+          },
+          "wallet_expiration_date": {
+            "name": "Wallet expiration date"
+          },
+          "wallet_recent_activity": {
+            "name": "Recent wallet activity"
+          }
+        }
+      },
+      "loyalty_profile": {
+        "name": "AB Plus profile",
+        "state": {
+          "connected": "Connected"
+        }
+      },
+      "offers_in_completed": {
+        "name": "AB offers in completed"
+      }
+    },
+    "todo": {
+      "shopping_list": {
+        "name": "AB shopping list"
+      }
+    }
+  }
+}
