@@ -1,0 +1,112 @@
+get_offers:
+  name: Get AB offers
+  description: Return a page of AB promotions with site filters and sorting.
+  fields:
+    search_query:
+      name: Site query
+      description: Current AB offers query; normally leave the default.
+      required: false
+      selector:
+        text:
+    page:
+      name: Result page
+      description: Page number, starting at 0.
+      required: false
+      selector:
+        number:
+          min: 0
+          max: 100
+          mode: box
+    sort:
+      name: Sort order
+      description: Sort key returned by the AB site.
+      required: false
+      selector:
+        text:
+    page_size:
+      name: Page size
+      description: Number of products on each page.
+      required: false
+      selector:
+        number:
+          min: 1
+          max: 100
+          mode: box
+    include_unavailable:
+      name: Include unavailable offers
+      description: Include promoted products that AB marks as unavailable.
+      required: false
+      selector:
+        boolean:
+    entity_id:
+      name: AB account shopping list
+      description: Select the account used for the offers request.
+      required: false
+      selector:
+        entity:
+          filter:
+            integration: ab_vassilopoulos
+            domain: todo
+search_products:
+  name: Search AB products
+  description: Return product suggestions with current unit price and available promotions.
+  fields:
+    query:
+      name: Search query
+      description: Product name or part of a product name.
+      required: true
+      selector:
+        text:
+    page:
+      name: Result page
+      description: Page of results to return, starting at 0.
+      required: false
+      selector:
+        number:
+          min: 0
+          max: 50
+          mode: box
+    entity_id:
+      name: AB account shopping list
+      description: Select the account used for product search.
+      required: false
+      selector:
+        entity:
+          filter:
+            integration: ab_vassilopoulos
+            domain: todo
+
+add_products:
+  name: Add products to cart
+  description: Add selected AB products to the active cart and shopping list.
+  fields:
+    products:
+      name: Products
+      description: Product entries containing code, name, and optional quantity.
+      required: false
+      selector:
+        object:
+    entity_id:
+      name: AB account shopping list
+      description: Select the account whose cart receives these products.
+      required: false
+      selector:
+        entity:
+          filter:
+            integration: ab_vassilopoulos
+            domain: todo
+
+
+get_loyalty_card:
+  name: Get AB Plus card
+  description: Return the active AB Plus card details for display in the dashboard.
+  fields:
+    entity_id:
+      name: AB account shopping list
+      description: Select the account whose AB Plus card should be returned.
+      required: false
+      selector:
+        entity:
+          filter:
+            integration: ab_vassilopoulos
+            domain: todo

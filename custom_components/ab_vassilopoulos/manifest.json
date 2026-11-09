@@ -1,0 +1,14 @@
+{
+  "domain": "ab_vassilopoulos",
+  "name": "AB Vassilopoulos",
+  "codeowners": ["@tsaouste"],
+  "config_flow": true,
+  "dependencies": ["frontend"],
+  "documentation": "https://github.com/tsaouste/ha-ab-vassilopoulos",
+  "issue_tracker": "https://github.com/tsaouste/ha-ab-vassilopoulos/issues",
+  "integration_type": "hub",
+  "iot_class": "cloud_polling",
+  "requirements": [],
+  "version": "1.0.0",
+  "categories": ["productivity_information.shopping_groceries"]
+}
