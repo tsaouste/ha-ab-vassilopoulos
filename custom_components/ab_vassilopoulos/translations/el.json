@@ -121,6 +121,14 @@
       },
       "offers_in_completed": {
         "name": "AB προϊόντα προσφοράς στα ολοκληρωμένα"
+      },
+      "online_orders": {
+        "name": "Ενεργές online παραγγελίες ΑΒ",
+        "state_attributes": {
+          "total_orders": { "name": "Σύνολο πρόσφατων παραγγελιών" },
+          "orders": { "name": "Πρόσφατες παραγγελίες" },
+          "latest_order": { "name": "Τελευταία παραγγελία" }
+        }
       }
     },
     "todo": {
@@ -130,3 +138,4 @@
     }
   }
 }
+
