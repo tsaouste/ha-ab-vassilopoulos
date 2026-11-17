@@ -1,6 +1,7 @@
 {
   "domain": "ab_vassilopoulos",
   "name": "AB Vassilopoulos",
+  "categories": ["productivity_information.shopping_groceries"],
   "codeowners": ["@tsaouste"],
   "config_flow": true,
   "dependencies": ["frontend", "http"],
@@ -9,7 +10,6 @@
   "integration_type": "hub",
   "iot_class": "cloud_polling",
   "requirements": [],
-  "version": "1.1.0",
-  "categories": ["productivity_information.shopping_groceries"]
+  "version": "1.1.1"
 }
 
