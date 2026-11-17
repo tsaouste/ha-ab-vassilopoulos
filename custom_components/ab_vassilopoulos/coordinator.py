@@ -7,6 +7,7 @@ import logging
 from dataclasses import asdict, dataclass
 from datetime import timedelta
 from time import monotonic
+from typing import Any
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
@@ -26,6 +27,8 @@ from .const import (
 _LOGGER = logging.getLogger(__name__)
 OFFER_REFRESH_INTERVAL_SECONDS = 6 * 60 * 60
 OFFER_RETRY_INTERVAL_SECONDS = 60 * 60
+ORDERS_REFRESH_INTERVAL_SECONDS = 5 * 60
+ORDERS_RETRY_INTERVAL_SECONDS = 60
 CART_RETRY_BASE_SECONDS = 60
 CART_RETRY_MAX_SECONDS = 5 * 60
 
@@ -37,6 +40,7 @@ class ABCoordinatorData:
     profile: MemberProfile
     shopping_list: list[ShoppingListItem]
     offer_product_codes: set[str] | None
+    orders: dict[str, Any]
 
 
 class ABVassilopoulosCoordinator(DataUpdateCoordinator[ABCoordinatorData]):
@@ -64,6 +68,10 @@ class ABVassilopoulosCoordinator(DataUpdateCoordinator[ABCoordinatorData]):
         self._last_offer_scan_success: float | None = None
         self._last_offer_scan_attempt: float | None = None
         self._offer_scan_task: asyncio.Task[None] | None = None
+        self._orders: dict[str, Any] = {"orders": [], "total_count": 0, "total_pages": 0, "page": 0}
+        self._last_orders_refresh: float | None = None
+        self._last_orders_attempt: float | None = None
+        self._orders_refresh_task: asyncio.Task[None] | None = None
 
     async def _async_update_data(self) -> ABCoordinatorData:
         profile_refreshed = False
@@ -169,11 +177,52 @@ class ABVassilopoulosCoordinator(DataUpdateCoordinator[ABCoordinatorData]):
             )
 
         self._schedule_offer_scan()
+        self._schedule_orders_refresh()
         return ABCoordinatorData(
             profile=profile,
             shopping_list=shopping_list,
             offer_product_codes=(set(self._offer_product_codes) if self._offer_product_codes is not None else None),
+            orders=self._orders,
         )
+
+    def _schedule_orders_refresh(self) -> None:
+        """Refresh recent online orders independently of the fast cart poll."""
+        now = monotonic()
+        if self._orders_refresh_task and not self._orders_refresh_task.done():
+            return
+        if (
+            self._last_orders_refresh is not None
+            and now - self._last_orders_refresh < ORDERS_REFRESH_INTERVAL_SECONDS
+        ):
+            return
+        if (
+            self._last_orders_attempt is not None
+            and now - self._last_orders_attempt < ORDERS_RETRY_INTERVAL_SECONDS
+        ):
+            return
+        self._last_orders_attempt = now
+        self._orders_refresh_task = self.hass.async_create_task(
+            self._async_refresh_orders()
+        )
+
+    async def _async_refresh_orders(self) -> None:
+        """Fetch recent orders without blocking shopping-list updates."""
+        try:
+            orders = await self.api.get_orders(page_size=10)
+        except (ABApiError, ABAuthError) as err:
+            _LOGGER.warning("Unable to refresh AB online orders; keeping the last value: %s", err)
+            return
+        self._orders = orders
+        self._last_orders_refresh = monotonic()
+        if self.data is not None:
+            self.async_set_updated_data(
+                ABCoordinatorData(
+                    profile=self.data.profile,
+                    shopping_list=self.data.shopping_list,
+                    offer_product_codes=self.data.offer_product_codes,
+                    orders=orders,
+                )
+            )
 
     def _schedule_offer_scan(self) -> None:
         """Schedule a background refresh of all active offers at a low frequency."""
@@ -213,6 +262,7 @@ class ABVassilopoulosCoordinator(DataUpdateCoordinator[ABCoordinatorData]):
                     profile=self.data.profile,
                     shopping_list=self.data.shopping_list,
                     offer_product_codes=set(product_codes),
+                    orders=self.data.orders,
                 )
             )
 
@@ -220,6 +270,8 @@ class ABVassilopoulosCoordinator(DataUpdateCoordinator[ABCoordinatorData]):
         """Cancel the offers scan when the config entry is unloaded."""
         if self._offer_scan_task and not self._offer_scan_task.done():
             self._offer_scan_task.cancel()
+        if self._orders_refresh_task and not self._orders_refresh_task.done():
+            self._orders_refresh_task.cancel()
 
 
 def _profile_from_cache(value: object) -> MemberProfile | None:
@@ -254,3 +306,4 @@ def _is_auth_error(err: Exception) -> bool:
             "PENDING_TOKEN_REFRESH",
         )
     )
+
