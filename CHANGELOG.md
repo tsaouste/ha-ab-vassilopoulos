@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.2.0
+
+- Adds account-specific order-status and delivery ETA sensors with preparing, packed, on-the-way, and delivered phases.
+- Preserves AB's raw status and delivery details as attributes so unrecognized statuses can be identified without mislabeling them.
+
 ## 1.1.1
 
 - Fixes integration manifest ordering and declares the HTTP dependency required by frontend resources.
