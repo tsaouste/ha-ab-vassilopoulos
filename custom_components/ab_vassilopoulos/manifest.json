@@ -3,7 +3,7 @@
   "name": "AB Vassilopoulos",
   "codeowners": ["@tsaouste"],
   "config_flow": true,
-  "dependencies": ["frontend"],
+  "dependencies": ["frontend", "http"],
   "documentation": "https://github.com/tsaouste/ha-ab-vassilopoulos",
   "issue_tracker": "https://github.com/tsaouste/ha-ab-vassilopoulos/issues",
   "integration_type": "hub",
