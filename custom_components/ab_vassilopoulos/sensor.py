@@ -51,6 +51,7 @@ async def async_setup_entry(
             ABWalletDiscountSensor(coordinator, entry),
             ABProfileSensor(coordinator, entry),
             ABOffersInCompletedSensor(coordinator, entry),
+            ABOnlineOrdersSensor(coordinator, entry),
         ]
     )
 
@@ -287,6 +288,37 @@ class ABOffersInCompletedSensor(ABBaseSensor):
         return {"products": self._matching_products()}
 
 
+class ABOnlineOrdersSensor(ABBaseSensor):
+    """Track active online orders for this AB account."""
+
+    _attr_translation_key = "online_orders"
+    _attr_icon = "mdi:truck-delivery-outline"
+    _attr_state_class = SensorStateClass.MEASUREMENT
+
+    @property
+    def unique_id(self) -> str:
+        return f"{self._entry.entry_id}_online_orders"
+
+    @property
+    def native_value(self) -> int:
+        orders = self.coordinator.data.orders.get("orders", [])
+        completed = {"COMPLETED", "CANCELLED", "CANCELED", "REJECTED", "DELIVERED"}
+        return sum(
+            1 for order in orders
+            if str(order.get("status") or "").upper() not in completed
+        )
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        data = self.coordinator.data.orders
+        orders = data.get("orders", [])
+        return {
+            "total_orders": data.get("total_count", 0),
+            "orders": orders,
+            "latest_order": orders[0] if orders else None,
+        }
+
+
 
 class ABProfileSensor(ABBaseSensor):
     """AB Plus selected profile."""
@@ -312,3 +344,4 @@ class ABProfileSensor(ABBaseSensor):
             ATTR_POINTS: profile.points,
             ATTR_WALLET_DISCOUNT: profile.wallet_discount,
         }
+
