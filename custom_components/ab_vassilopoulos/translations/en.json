@@ -103,6 +103,36 @@
           "orders": { "name": "Recent orders" },
           "latest_order": { "name": "Latest order" }
         }
+      },
+      "order_status": {
+        "name": "AB order status",
+        "state": {
+          "preparing": "Preparing",
+          "packed": "Packed",
+          "on_the_way": "On the way",
+          "delivered": "Delivered"
+        },
+        "state_attributes": {
+          "ab_status": { "name": "AB status code" },
+          "ab_status_display": { "name": "AB status display" },
+          "delivery_status": { "name": "Delivery status code" },
+          "created": { "name": "Order created" },
+          "total_items": { "name": "Different products" },
+          "total_unit_count": { "name": "Total units" },
+          "total_price": { "name": "Order total" },
+          "cancellable": { "name": "Can be cancelled" },
+          "amendable": { "name": "Can be amended" }
+        }
+      },
+      "delivery_eta": {
+        "name": "AB delivery ETA",
+        "state_attributes": {
+          "order_status": { "name": "Order status" },
+          "delivery_date": { "name": "Delivery date" },
+          "delivery_window": { "name": "Delivery window" },
+          "created": { "name": "Order created" },
+          "collection_point": { "name": "Collection point" }
+        }
       }
     },
     "todo": {
