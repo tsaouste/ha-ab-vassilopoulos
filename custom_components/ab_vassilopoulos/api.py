@@ -18,6 +18,11 @@ from .const import DEFAULT_API_BASE_URL, DEFAULT_LANG
 # used to force that fallback and surface a fake "invalid cookies" error.
 LANG_CANDIDATES = ("GR", "gr", "el-GR", "el-gr", "el")
 
+ORDERS_OPERATION_NAME = "ReservationHistoryGetOrders"
+ORDERS_PERSISTED_QUERY_HASH = (
+    "b5d8313d341ffb2425ddcfa57140c9882ab31201072e8bdb8c58566cfce5540d"
+)
+
 LOYALTY_QUERY = """
 query GetLoyaltyPoints($lang: String) {
   loyaltyPoints(lang: $lang) {
@@ -341,6 +346,61 @@ class ABVassilopoulosApi:
             "barcode_id": str(card.get("barcodeId") or ""),
             "card_status": str(active.get("cardStatus") or ""),
             "card_status_code": _to_int(active.get("cardStatusCode")),
+        }
+
+    async def get_orders(self, *, page_size: int = 10) -> dict[str, Any]:
+        """Return recent online orders using AB's persisted orders operation."""
+        variables = {
+            "getOrdersInput": {
+                "lang": "gr",
+                "pageNo": 0,
+                "pageSize": page_size,
+                "sort": "byDate",
+                "fields": "FULL",
+                "propositionTypes": "ECOM,DELIVERY_SUBSCRIPTION",
+            }
+        }
+        try:
+            result = await self._auth.graphql_persisted(
+                ORDERS_OPERATION_NAME, variables, ORDERS_PERSISTED_QUERY_HASH
+            )
+        except ABAuthError as err:
+            raise ABApiError(str(err)) from err
+
+        response = (result or {}).get("getOrders") or {}
+        orders = response.get("orders") or []
+        # Expose only fields useful for tracking. Do not retain addresses,
+        # delivery instructions, account GUIDs, or other personal order data.
+        safe_orders = []
+        for order in orders:
+            slot = order.get("slotData") or {}
+            price = order.get("totalPrice") or {}
+            safe_orders.append(
+                {
+                    "status": order.get("status"),
+                    "status_display": order.get("statusDisplay"),
+                    "delivery_status": order.get("deliveryStatus"),
+                    "created": order.get("created"),
+                    "total_items": _to_int(order.get("totalItems")),
+                    "total_unit_count": _to_int(order.get("totalUnitCount")),
+                    "total_price": price.get("formattedValue"),
+                    "estimated_delivery": order.get("estimatedDeliveryDateTime"),
+                    "dispatch_type": order.get("dispatchType"),
+                    "delivery_type": order.get("deliveryType"),
+                    "delivery_date": slot.get("dateFmt"),
+                    "delivery_window": slot.get("slotTimeRangeFmt"),
+                    "delivery_datetime": slot.get("dateAndTimeFormatted"),
+                    "collection_point": slot.get("collectionPointName"),
+                    "cancellable": order.get("cancellable"),
+                    "amendable": order.get("amendable"),
+                }
+            )
+        pagination = response.get("pagination") or {}
+        return {
+            "orders": safe_orders,
+            "total_count": _to_int(pagination.get("totalCount")) or 0,
+            "total_pages": _to_int(pagination.get("totalPages")) or 0,
+            "page": _to_int(pagination.get("page")) or 0,
         }
 
     async def get_member_identity(self) -> tuple[str, str | None, str | None]:
@@ -1205,3 +1265,4 @@ def _to_float(value: Any) -> float | None:
         return float(value)
     except (TypeError, ValueError):
         return None
+
