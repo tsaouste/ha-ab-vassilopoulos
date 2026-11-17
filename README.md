@@ -24,6 +24,7 @@ The Marketplace requires Home Assistant 2026.11 or newer. For earlier Home Assis
 ## What it provides
 
 - AB Plus points balance, profile and loyalty information exposed as Home Assistant entities.
+- Online-order tracking for each configured account, including active-order count, status, delivery window, item counts, and total. Recent order data refreshes every five minutes; addresses and delivery notes are not exposed.
 - A separate Home Assistant to-do shopping list for each configured AB account. Cart items and quantities synchronize with AB; checking an item removes it from the active AB cart and keeps it in completed items for quick reordering. Unchecking it adds it back to the cart.
 - A combined shopping-list and product-picker dashboard card with AB product search, quantities, images, prices, availability, and cart totals.
 - An AB offers dashboard card with paged product results, offer pricing, offer details, and controls to add selected products to the chosen account's cart.
@@ -73,3 +74,4 @@ Please include the Home Assistant version, integration version, relevant entity/
 ## License
 
 MIT
+
