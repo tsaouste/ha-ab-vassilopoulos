@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import json
 import logging
 from http.cookies import SimpleCookie
 from typing import Any
@@ -179,6 +180,59 @@ class ABAuthClient:
 
         return body["data"]
 
+    async def graphql_persisted(
+        self,
+        operation_name: str,
+        variables: dict[str, Any],
+        sha256_hash: str,
+        *,
+        _retry_auth: bool = True,
+    ) -> dict[str, Any]:
+        """Execute an AB persisted GraphQL operation using its GET request."""
+        params = {
+            "operationName": operation_name,
+            "variables": json.dumps(variables, separators=(",", ":")),
+            "extensions": json.dumps(
+                {"persistedQuery": {"version": 1, "sha256Hash": sha256_hash}},
+                separators=(",", ":"),
+            ),
+        }
+        try:
+            async with self._session.get(
+                self._api_base_url,
+                params=params,
+                headers=self._headers(operation_name),
+                timeout=REQUEST_TIMEOUT,
+            ) as response:
+                self._update_cookies_from_response(response)
+                if _retry_auth and response.status == 401:
+                    response.release()
+                    await self.refresh_customer_auth_cookies()
+                    return await self.graphql_persisted(
+                        operation_name, variables, sha256_hash, _retry_auth=False
+                    )
+                body = await _read_json_response(response, "AB API")
+        except (TimeoutError, asyncio.TimeoutError) as err:
+            raise ABAuthError(
+                "AB API timed out. Check that Home Assistant can reach www.ab.gr."
+            ) from err
+        except aiohttp.ClientError as err:
+            raise ABAuthError(f"Could not reach AB API: {err}") from err
+
+        if isinstance(body, dict) and body.get("errors"):
+            error_message = _format_graphql_errors(body["errors"])
+            if _retry_auth and _should_refresh_token(error_message):
+                await self.refresh_customer_auth_cookies()
+                return await self.graphql_persisted(
+                    operation_name, variables, sha256_hash, _retry_auth=False
+                )
+            raise ABAuthError(error_message)
+        if response.status >= 400:
+            raise ABAuthError(f"HTTP {response.status}: {body}")
+        if not isinstance(body, dict) or "data" not in body:
+            raise ABAuthError("Unexpected GraphQL response")
+        return body["data"]
+
     async def refresh_customer_auth_cookies(self) -> None:
         """Ask AB to refresh its authentication cookies, as the website does."""
         payload = {
@@ -312,3 +366,4 @@ def _should_refresh_token(error_message: str) -> bool:
             "INVALID ACCESS TOKEN",
         )
     )
+
