@@ -95,6 +95,14 @@
       },
       "offers_in_completed": {
         "name": "AB offers in completed"
+      },
+      "online_orders": {
+        "name": "AB active online orders",
+        "state_attributes": {
+          "total_orders": { "name": "Total recent orders" },
+          "orders": { "name": "Recent orders" },
+          "latest_order": { "name": "Latest order" }
+        }
       }
     },
     "todo": {
@@ -104,3 +112,4 @@
     }
   }
 }
+
