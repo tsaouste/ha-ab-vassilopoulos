@@ -25,6 +25,8 @@ from .coordinator import ABVassilopoulosCoordinator
 
 type ABConfigEntry = ConfigEntry[ABVassilopoulosCoordinator]
 
+CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
+
 
 async def async_setup(hass: HomeAssistant, config: dict) -> bool:
     """Set up product search, offers, and custom-card support."""
@@ -229,3 +231,4 @@ async def async_unload_entry(hass: HomeAssistant, entry: ABConfigEntry) -> bool:
     if unload_ok:
         entry.runtime_data.async_stop_offer_scan()
     return unload_ok
+
