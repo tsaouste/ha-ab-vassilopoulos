@@ -52,6 +52,8 @@ async def async_setup_entry(
             ABProfileSensor(coordinator, entry),
             ABOffersInCompletedSensor(coordinator, entry),
             ABOnlineOrdersSensor(coordinator, entry),
+            ABOrderStatusSensor(coordinator, entry),
+            ABDeliveryEtaSensor(coordinator, entry),
         ]
     )
 
@@ -318,6 +320,123 @@ class ABOnlineOrdersSensor(ABBaseSensor):
             "latest_order": orders[0] if orders else None,
         }
 
+
+
+class ABOrderStatusSensor(ABBaseSensor):
+    """Status of the newest order with a recognized tracking phase."""
+
+    _attr_translation_key = "order_status"
+    _attr_icon = "mdi:package-variant-closed-check"
+
+    @property
+    def unique_id(self) -> str:
+        return f"{self._entry.entry_id}_order_status"
+
+    def _tracked_order(self) -> tuple[dict[str, Any] | None, str | None]:
+        for order in self.coordinator.data.orders.get("orders", []):
+            phase = _order_phase(order)
+            if phase:
+                return order, phase
+        return None, None
+
+    @property
+    def native_value(self) -> str | None:
+        _, phase = self._tracked_order()
+        return phase
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        order, _ = self._tracked_order()
+        if order is None:
+            return {}
+        return {
+            "ab_status": order.get("status"),
+            "ab_status_display": order.get("status_display"),
+            "delivery_status": order.get("delivery_status"),
+            "created": order.get("created"),
+            "total_items": order.get("total_items"),
+            "total_unit_count": order.get("total_unit_count"),
+            "total_price": order.get("total_price"),
+            "cancellable": order.get("cancellable"),
+            "amendable": order.get("amendable"),
+        }
+
+
+class ABDeliveryEtaSensor(ABBaseSensor):
+    """Delivery window for the newest order that is not marked delivered."""
+
+    _attr_translation_key = "delivery_eta"
+    _attr_icon = "mdi:truck-clock-outline"
+
+    @property
+    def unique_id(self) -> str:
+        return f"{self._entry.entry_id}_delivery_eta"
+
+    def _active_order(self) -> dict[str, Any] | None:
+        for order in self.coordinator.data.orders.get("orders", []):
+            if _order_phase(order) in {"preparing", "packed", "on_the_way"}:
+                return order
+        return None
+
+    @property
+    def native_value(self) -> str | None:
+        order = self._active_order()
+        if order is None:
+            return None
+        return (
+            order.get("delivery_datetime")
+            or order.get("estimated_delivery")
+            or order.get("delivery_date")
+        )
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        order = self._active_order()
+        if order is None:
+            return {}
+        return {
+            "order_status": _order_phase(order),
+            "delivery_date": order.get("delivery_date"),
+            "delivery_window": order.get("delivery_window"),
+            "created": order.get("created"),
+            "collection_point": order.get("collection_point"),
+        }
+
+
+def _order_phase(order: dict[str, Any]) -> str | None:
+    """Normalize AB order and delivery codes to the requested status set."""
+    status = (
+        str(order.get("status") or "")
+        .strip()
+        .upper()
+        .replace("-", "_")
+        .replace(" ", "_")
+    )
+    delivery_status = (
+        str(order.get("delivery_status") or "")
+        .strip()
+        .upper()
+        .replace("-", "_")
+        .replace(" ", "_")
+    )
+
+    if delivery_status == "DELIVERED" or status == "DELIVERED":
+        return "delivered"
+    if status in {
+        "OUT_FOR_DELIVERY", "ON_THE_WAY", "IN_TRANSIT", "DISPATCHED", "SHIPPED"
+    } or delivery_status in {
+        "OUT_FOR_DELIVERY", "ON_THE_WAY", "IN_TRANSIT", "DISPATCHED", "SHIPPED"
+    }:
+        return "on_the_way"
+    if status in {"PACKED", "READY_FOR_DISPATCH", "READY_FOR_DELIVERY"} or delivery_status in {
+        "PACKED", "READY_FOR_DISPATCH", "READY_FOR_DELIVERY"
+    }:
+        return "packed"
+    if status in {"PLACED", "PREPARING", "IN_PREPARATION", "PROCESSING"} or delivery_status in {
+        "PREPARING", "IN_PREPARATION", "PROCESSING"
+    }:
+        return "preparing"
+    return None
 
 
 class ABProfileSensor(ABBaseSensor):
