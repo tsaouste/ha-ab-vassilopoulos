@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.1.1
+
+- Fixes integration manifest ordering and declares the HTTP dependency required by frontend resources.
+- Declares config-entry-only YAML setup for Home Assistant validation.
+
 ## 1.1.0
 
 - Adds account-specific online-order tracking with recent status, delivery window, item counts, and order total.
