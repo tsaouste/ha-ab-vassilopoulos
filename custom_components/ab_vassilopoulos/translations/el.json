@@ -129,6 +129,36 @@
           "orders": { "name": "Πρόσφατες παραγγελίες" },
           "latest_order": { "name": "Τελευταία παραγγελία" }
         }
+      },
+      "order_status": {
+        "name": "Κατάσταση παραγγελίας ΑΒ",
+        "state": {
+          "preparing": "Προετοιμάζεται",
+          "packed": "Συσκευάστηκε",
+          "on_the_way": "Στον δρόμο",
+          "delivered": "Παραδόθηκε"
+        },
+        "state_attributes": {
+          "ab_status": { "name": "Κωδικός κατάστασης ΑΒ" },
+          "ab_status_display": { "name": "Περιγραφή κατάστασης ΑΒ" },
+          "delivery_status": { "name": "Κωδικός παράδοσης" },
+          "created": { "name": "Δημιουργία παραγγελίας" },
+          "total_items": { "name": "Διαφορετικά προϊόντα" },
+          "total_unit_count": { "name": "Συνολικά τεμάχια" },
+          "total_price": { "name": "Σύνολο παραγγελίας" },
+          "cancellable": { "name": "Ακυρώσιμη" },
+          "amendable": { "name": "Τροποποιήσιμη" }
+        }
+      },
+      "delivery_eta": {
+        "name": "Εκτιμώμενη παράδοση ΑΒ",
+        "state_attributes": {
+          "order_status": { "name": "Κατάσταση παραγγελίας" },
+          "delivery_date": { "name": "Ημερομηνία παράδοσης" },
+          "delivery_window": { "name": "Ώρες παράδοσης" },
+          "created": { "name": "Δημιουργία παραγγελίας" },
+          "collection_point": { "name": "Σημείο παραλαβής" }
+        }
       }
     },
     "todo": {
