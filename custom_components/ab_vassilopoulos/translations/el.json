@@ -149,8 +149,7 @@
           "cancellable": { "name": "Ακυρώσιμη" },
           "amendable": { "name": "Τροποποιήσιμη" }
         }
-      },
-
+      }
     },
     "todo": {
       "shopping_list": {
