@@ -156,6 +156,8 @@
           "order_status": { "name": "Κατάσταση παραγγελίας" },
           "delivery_date": { "name": "Ημερομηνία παράδοσης" },
           "delivery_window": { "name": "Ώρες παράδοσης" },
+          "window_start": { "name": "Έναρξη χρονικού παραθύρου" },
+          "window_end": { "name": "Λήξη χρονικού παραθύρου" },
           "created": { "name": "Δημιουργία παραγγελίας" },
           "collection_point": { "name": "Σημείο παραλαβής" }
         }
