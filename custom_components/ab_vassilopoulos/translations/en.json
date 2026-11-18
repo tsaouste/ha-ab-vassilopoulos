@@ -123,8 +123,7 @@
           "cancellable": { "name": "Can be cancelled" },
           "amendable": { "name": "Can be amended" }
         }
-      },
-
+      }
     },
     "todo": {
       "shopping_list": {
