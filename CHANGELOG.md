@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.3.2
+
+- Removes the redundant delivery ETA sensor; delivery date and window remain in the active online orders attributes.
+- Removes the Markdown countdown example from the README.
+- Cleans up the retired ETA entity from the entity registry when the sensor platform loads.
+
+
 ## 1.3.1
 
 - Stops changing the ETA sensor every minute, preventing countdown updates from filling the activity history.
