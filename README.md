@@ -61,37 +61,6 @@ Add cards from the dashboard card picker:
 
 Choose the corresponding account's to-do entity in each card's visual editor. A card without a selected account remains empty.
 
-## Live delivery countdown card
-
-The ETA sensor keeps AB's delivery window and stable `window_start` / `window_end` timestamps. To show a live countdown range without changing an entity every minute or filling the activity history, add a native Markdown card. Replace the example entity ID with the ETA sensor for the account you want to track:
-
-```yaml
-type: markdown
-content: >-
-  {% set entity = 'sensor.ab_delivery_eta' %}
-  {% set start = state_attr(entity, 'window_start') | as_timestamp(0) %}
-  {% set end = state_attr(entity, 'window_end') | as_timestamp(0) %}
-  {% set current = as_timestamp(now()) | int %}
-  {% macro duration(seconds) -%}
-    {% set minutes = ((seconds / 60) | round(0, 'ceil')) | int %}
-    {{ minutes // 1440 }}d {{ (minutes % 1440) // 60 }}h {{ minutes % 60 }}m
-  {%- endmacro %}
-  {% if start and end %}
-    {% if current < start %}
-      Delivery in {{ duration(start - current) }} – {{ duration(end - current) }}
-    {% elif current <= end %}
-      Delivery window active · up to {{ duration(end - current) }} remaining
-    {% else %}
-      Delivery window passed
-    {% endif %}
-    ({{ state_attr(entity, 'delivery_window') }})
-  {% else %}
-    {{ states(entity) }}
-  {% endif %}
-```
-
-The countdown range is measured to both ends of AB's delivery window and uses the Home Assistant time zone. The Markdown card updates from `now()` on the frontend; it does not create minute-by-minute sensor history entries.
-
 ## Notes and limitations
 
 - The AB API is not a public integration API. AB may change or limit it, and temporary AB outages can result in delayed or unavailable data.
