@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.3.3
+
+- Fixes a trailing comma in the English and Greek translation files after removing the ETA sensor.
+
+
 ## 1.3.2
 
 - Removes the redundant delivery ETA sensor; delivery date and window remain in the active online orders attributes.
