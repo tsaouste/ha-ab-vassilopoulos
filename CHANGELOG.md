@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.3.1
+
+- Stops changing the ETA sensor every minute, preventing countdown updates from filling the activity history.
+- Exposes stable window start/end timestamps for a native Markdown card to render the full live countdown range.
+
+
 ## 1.3.0
 
 - Shows a live countdown to the delivery window, including the remaining time inside the arrival window.
