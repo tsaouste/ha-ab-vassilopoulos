@@ -130,6 +130,8 @@
           "order_status": { "name": "Order status" },
           "delivery_date": { "name": "Delivery date" },
           "delivery_window": { "name": "Delivery window" },
+          "window_start": { "name": "Delivery window starts" },
+          "window_end": { "name": "Delivery window ends" },
           "created": { "name": "Order created" },
           "collection_point": { "name": "Collection point" }
         }
