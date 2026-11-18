@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.3.0
+
+- Shows a live countdown to the delivery window, including the remaining time inside the arrival window.
+- Refreshes the countdown every minute without making additional requests to AB.
+
+
 ## 1.2.0
 
 - Adds account-specific order-status and delivery ETA sensors with preparing, packed, on-the-way, and delivered phases.
