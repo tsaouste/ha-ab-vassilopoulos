@@ -3,15 +3,13 @@
 from __future__ import annotations
 
 import re
-from datetime import datetime, timedelta
-from math import ceil
+from datetime import datetime
 from typing import Any
 
 from homeassistant.components.sensor import SensorEntity, SensorStateClass
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.event import async_track_time_interval
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.helpers import entity_registry as er
 from homeassistant.util import dt as dt_util
@@ -377,20 +375,6 @@ class ABDeliveryEtaSensor(ABBaseSensor):
     def unique_id(self) -> str:
         return f"{self._entry.entry_id}_delivery_eta"
 
-    async def async_added_to_hass(self) -> None:
-        """Refresh the countdown every minute without polling AB again."""
-        await super().async_added_to_hass()
-        self.async_on_remove(
-            async_track_time_interval(
-                self.hass,
-                self._refresh_countdown,
-                timedelta(minutes=1),
-            )
-        )
-
-    def _refresh_countdown(self, now: datetime) -> None:
-        self.async_write_ha_state()
-
     def _active_order(self) -> dict[str, Any] | None:
         for order in self.coordinator.data.orders.get("orders", []):
             if _order_phase(order) in {"preparing", "packed", "on_the_way"}:
@@ -421,34 +405,17 @@ class ABDeliveryEtaSensor(ABBaseSensor):
             return None
         return start, end
 
-    @staticmethod
-    def _format_duration(delta: timedelta) -> str:
-        """Format a positive duration as days, hours, and minutes."""
-        total_minutes = max(0, ceil(delta.total_seconds() / 60))
-        days, remainder = divmod(total_minutes, 24 * 60)
-        hours, minutes = divmod(remainder, 60)
-        return f"{days}d {hours}h {minutes}m"
-
     @property
     def native_value(self) -> str | None:
+        """Keep AB's delivery range stable; dashboards can render a live countdown."""
         order = self._active_order()
         if order is None:
             return None
-        window = self._window_datetimes(order)
-        if window is None:
-            return (
-                order.get("delivery_datetime")
-                or order.get("estimated_delivery")
-                or order.get("delivery_date")
-            )
-        start, end = window
-        now = dt_util.now().astimezone(start.tzinfo)
-        window_label = f"{start:%H:%M}–{end:%H:%M}"
-        if now < start:
-            return f"in {self._format_duration(start - now)} · {window_label}"
-        if now <= end:
-            return f"{self._format_duration(end - now)} left · {window_label}"
-        return f"window ended · {window_label}"
+        return (
+            order.get("delivery_datetime")
+            or order.get("estimated_delivery")
+            or order.get("delivery_date")
+        )
 
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
