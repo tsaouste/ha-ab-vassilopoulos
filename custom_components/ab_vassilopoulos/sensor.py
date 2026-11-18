@@ -2,14 +2,19 @@
 
 from __future__ import annotations
 
+import re
+from datetime import datetime, timedelta
+from math import ceil
 from typing import Any
 
 from homeassistant.components.sensor import SensorEntity, SensorStateClass
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.event import async_track_time_interval
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.helpers import entity_registry as er
+from homeassistant.util import dt as dt_util
 
 from .const import (
     ATTR_POINTS,
@@ -363,7 +368,7 @@ class ABOrderStatusSensor(ABBaseSensor):
 
 
 class ABDeliveryEtaSensor(ABBaseSensor):
-    """Delivery window for the newest order that is not marked delivered."""
+    """Countdown to the newest active order's delivery window."""
 
     _attr_translation_key = "delivery_eta"
     _attr_icon = "mdi:truck-clock-outline"
@@ -372,35 +377,96 @@ class ABDeliveryEtaSensor(ABBaseSensor):
     def unique_id(self) -> str:
         return f"{self._entry.entry_id}_delivery_eta"
 
+    async def async_added_to_hass(self) -> None:
+        """Refresh the countdown every minute without polling AB again."""
+        await super().async_added_to_hass()
+        self.async_on_remove(
+            async_track_time_interval(
+                self.hass,
+                self._refresh_countdown,
+                timedelta(minutes=1),
+            )
+        )
+
+    def _refresh_countdown(self, now: datetime) -> None:
+        self.async_write_ha_state()
+
     def _active_order(self) -> dict[str, Any] | None:
         for order in self.coordinator.data.orders.get("orders", []):
             if _order_phase(order) in {"preparing", "packed", "on_the_way"}:
                 return order
         return None
 
+    def _window_datetimes(self, order: dict[str, Any]) -> tuple[datetime, datetime] | None:
+        """Parse AB's local display value, e.g. 18/11/2026 19:30 - 21:30."""
+        value = str(order.get("delivery_datetime") or "")
+        match = re.search(
+            r"(\d{1,2}/\d{1,2}/\d{4})\s+(\d{1,2}:\d{2})\s*[-–]\s*(\d{1,2}:\d{2})",
+            value,
+        )
+        if match is None:
+            return None
+        timezone = dt_util.get_time_zone(self.hass.config.time_zone)
+        if timezone is None:
+            return None
+        date_text, start_text, end_text = match.groups()
+        try:
+            start = datetime.strptime(
+                f"{date_text} {start_text}", "%d/%m/%Y %H:%M"
+            ).replace(tzinfo=timezone)
+            end = datetime.strptime(
+                f"{date_text} {end_text}", "%d/%m/%Y %H:%M"
+            ).replace(tzinfo=timezone)
+        except ValueError:
+            return None
+        return start, end
+
+    @staticmethod
+    def _format_duration(delta: timedelta) -> str:
+        """Format a positive duration as days, hours, and minutes."""
+        total_minutes = max(0, ceil(delta.total_seconds() / 60))
+        days, remainder = divmod(total_minutes, 24 * 60)
+        hours, minutes = divmod(remainder, 60)
+        return f"{days}d {hours}h {minutes}m"
+
     @property
     def native_value(self) -> str | None:
         order = self._active_order()
         if order is None:
             return None
-        return (
-            order.get("delivery_datetime")
-            or order.get("estimated_delivery")
-            or order.get("delivery_date")
-        )
+        window = self._window_datetimes(order)
+        if window is None:
+            return (
+                order.get("delivery_datetime")
+                or order.get("estimated_delivery")
+                or order.get("delivery_date")
+            )
+        start, end = window
+        now = dt_util.now().astimezone(start.tzinfo)
+        window_label = f"{start:%H:%M}–{end:%H:%M}"
+        if now < start:
+            return f"in {self._format_duration(start - now)} · {window_label}"
+        if now <= end:
+            return f"{self._format_duration(end - now)} left · {window_label}"
+        return f"window ended · {window_label}"
 
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
         order = self._active_order()
         if order is None:
             return {}
-        return {
+        window = self._window_datetimes(order)
+        attributes = {
             "order_status": _order_phase(order),
             "delivery_date": order.get("delivery_date"),
             "delivery_window": order.get("delivery_window"),
             "created": order.get("created"),
             "collection_point": order.get("collection_point"),
         }
+        if window is not None:
+            attributes["window_start"] = window[0].isoformat()
+            attributes["window_end"] = window[1].isoformat()
+        return attributes
 
 
 def _order_phase(order: dict[str, Any]) -> str | None:
